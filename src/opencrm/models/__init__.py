@@ -4,6 +4,7 @@ from opencrm.models.contact import Contact
 from opencrm.models.helpdesk import Helpdesk
 from opencrm.models.lead import Lead
 from opencrm.models.opportunity import Opportunity
+from opencrm.models.product import Product
 from opencrm.models.project import Project
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "Project",
     "Helpdesk",
     "Opportunity",
+    "Product",
 ]
