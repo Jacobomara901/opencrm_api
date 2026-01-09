@@ -37,6 +37,7 @@ class TestOpenCRMClient:
         assert hasattr(client, "projects")
         assert hasattr(client, "helpdesk")
         assert hasattr(client, "opportunities")
+        assert hasattr(client, "products")
 
         client.close()
 

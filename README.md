@@ -191,6 +191,7 @@ new_count = client.leads.count(query=query().equals("leadstatus", "New"))
 | `client.projects` | Project records |
 | `client.helpdesk` | Support ticket records |
 | `client.opportunities` | Opportunity/Deal records |
+| `client.products` | Product records |
 
 Each resource supports these methods:
 
