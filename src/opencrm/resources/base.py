@@ -139,7 +139,7 @@ class BaseResource(Generic[T]):
             >>> contact = client.contacts.get(crmid=12345)
             >>> print(contact["firstname"], contact["lastname"])
         """
-        response = self._http.get(self._get_endpoint, data={"crmid": crmid})
+        response = self._http.post(self._get_endpoint, data={"crmid": crmid})
         if isinstance(response, dict):
             return response
         return {}
