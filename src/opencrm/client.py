@@ -1,3 +1,23 @@
+"""
+OpenCRM API Client.
+
+This module provides the main client interface for interacting with the OpenCRM REST API.
+
+Example:
+    >>> from opencrm import OpenCRMClient
+    >>> client = OpenCRMClient(
+    ...     system_name="yoursystem",
+    ...     api_key="your-api-key",
+    ...     pass_key="your-pass-key",
+    ... )
+    >>> leads = client.leads.list()
+    >>> client.close()
+
+Using as context manager:
+    >>> with OpenCRMClient(system_name="test", api_key="key", pass_key="pass") as client:
+    ...     contacts = client.contacts.list()
+"""
+
 from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
@@ -24,6 +44,20 @@ DEFAULT_TIMEOUT = 30.0
 
 
 class HTTPClient:
+    """
+    Low-level HTTP client for OpenCRM API requests.
+
+    Handles authentication, request building, and response parsing.
+    Most users should use OpenCRMClient instead of this class directly.
+
+    Args:
+        system_name: Your OpenCRM system name (the subdomain part of your URL).
+        auth: Authentication strategy to use.
+        user_agent: Custom User-Agent header. Defaults to "opencrm-python/0.1.0".
+            Note: OpenCRM blocks default curl user agents.
+        timeout: Request timeout in seconds. Defaults to 30.0.
+    """
+
     def __init__(
         self,
         system_name: str,
@@ -130,6 +164,52 @@ class HTTPClient:
 
 
 class OpenCRMClient:
+    """
+    Main client for interacting with the OpenCRM API.
+
+    Provides access to all OpenCRM resources (leads, contacts, companies, etc.)
+    through a simple, Pythonic interface.
+
+    Args:
+        system_name: Your OpenCRM system name (subdomain). For example, if your
+            OpenCRM URL is "acme.opencrm.co.uk", use "acme".
+        api_key: Your OpenCRM API key. Contact OpenCRM support to obtain this.
+        pass_key: Your OpenCRM API pass key. Contact OpenCRM support to obtain this.
+        auth_method: Authentication method to use. Options:
+            - "keys" (default): Pass API keys with each request
+            - "headers": Pass API keys as HTTP headers (KEY1/KEY2)
+            - "session": Login once and use session access key
+        user_agent: Custom User-Agent string. Defaults to "opencrm-python/0.1.0".
+            Important: OpenCRM blocks default curl user agents.
+        timeout: Request timeout in seconds. Defaults to 30.0.
+
+    Raises:
+        ConfigurationError: If required parameters are missing or invalid.
+        AuthenticationError: If session authentication fails (auth_method="session").
+
+    Example:
+        >>> client = OpenCRMClient(
+        ...     system_name="acme",
+        ...     api_key="ABC123",
+        ...     pass_key="XYZ789",
+        ... )
+        >>> # List all leads
+        >>> leads = client.leads.list()
+        >>> # Get a specific contact
+        >>> contact = client.contacts.get(crmid=12345)
+        >>> # Create a new company
+        >>> new_id = client.companies.create(
+        ...     accountname="New Corp",
+        ...     assigned_user_id=1,
+        ... )
+        >>> client.close()
+
+    Note:
+        Always call close() when done, or use as a context manager:
+        >>> with OpenCRMClient(...) as client:
+        ...     leads = client.leads.list()
+    """
+
     def __init__(
         self,
         system_name: str,
