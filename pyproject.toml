@@ -38,6 +38,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/opencrm"]
 
+[tool.hatch.build.targets.sdist]
+include = ["src/opencrm"]
+
+[tool.hatch.build]
+sources = ["src"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
