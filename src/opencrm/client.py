@@ -95,7 +95,6 @@ class HTTPClient:
     def _build_headers(self) -> dict[str, str]:
         headers = {
             "User-Agent": self._user_agent,
-            "Content-Type": "multipart/form-data",
         }
         return self._auth.apply_to_headers(headers)
 

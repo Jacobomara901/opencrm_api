@@ -65,7 +65,6 @@ class SessionAuth(AuthStrategy):
         login_url = f"{base_url}/api/rest/login"
         headers = {
             "User-Agent": user_agent,
-            "Content-Type": "multipart/form-data",
         }
 
         try:
