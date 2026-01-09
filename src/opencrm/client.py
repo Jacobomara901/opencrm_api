@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 
@@ -10,6 +10,14 @@ from opencrm.exceptions import (
     NotFoundError,
     RateLimitError,
 )
+
+if TYPE_CHECKING:
+    from opencrm.resources.companies import CompaniesResource
+    from opencrm.resources.contacts import ContactsResource
+    from opencrm.resources.helpdesk import HelpdeskResource
+    from opencrm.resources.leads import LeadsResource
+    from opencrm.resources.opportunities import OpportunitiesResource
+    from opencrm.resources.projects import ProjectsResource
 
 DEFAULT_USER_AGENT = "opencrm-python/0.1.0"
 DEFAULT_TIMEOUT = 30.0
@@ -161,6 +169,54 @@ class OpenCRMClient:
     @property
     def http(self) -> HTTPClient:
         return self._http
+
+    @property
+    def leads(self) -> "LeadsResource":
+        from opencrm.resources.leads import LeadsResource
+
+        if not hasattr(self, "_leads"):
+            self._leads = LeadsResource(self._http)
+        return self._leads
+
+    @property
+    def contacts(self) -> "ContactsResource":
+        from opencrm.resources.contacts import ContactsResource
+
+        if not hasattr(self, "_contacts"):
+            self._contacts = ContactsResource(self._http)
+        return self._contacts
+
+    @property
+    def companies(self) -> "CompaniesResource":
+        from opencrm.resources.companies import CompaniesResource
+
+        if not hasattr(self, "_companies"):
+            self._companies = CompaniesResource(self._http)
+        return self._companies
+
+    @property
+    def projects(self) -> "ProjectsResource":
+        from opencrm.resources.projects import ProjectsResource
+
+        if not hasattr(self, "_projects"):
+            self._projects = ProjectsResource(self._http)
+        return self._projects
+
+    @property
+    def helpdesk(self) -> "HelpdeskResource":
+        from opencrm.resources.helpdesk import HelpdeskResource
+
+        if not hasattr(self, "_helpdesk"):
+            self._helpdesk = HelpdeskResource(self._http)
+        return self._helpdesk
+
+    @property
+    def opportunities(self) -> "OpportunitiesResource":
+        from opencrm.resources.opportunities import OpportunitiesResource
+
+        if not hasattr(self, "_opportunities"):
+            self._opportunities = OpportunitiesResource(self._http)
+        return self._opportunities
 
     def close(self) -> None:
         self._http.close()
