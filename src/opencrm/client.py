@@ -25,6 +25,7 @@ import httpx
 from opencrm.auth import APIKeyAuth, AuthStrategy, HeaderAuth, SessionAuth
 from opencrm.exceptions import (
     APIError,
+    AuthenticationError,
     ConfigurationError,
     ConnectionError,
     NotFoundError,
@@ -119,7 +120,7 @@ class HTTPClient:
 
         if response.status_code >= 400:
             raise APIError(
-                f"API request failed",
+                "API request failed",
                 status_code=response.status_code,
                 response_body=response.text,
             )
@@ -128,9 +129,24 @@ class HTTPClient:
             return None
 
         try:
-            return response.json()
+            data = response.json()
         except Exception:
             return response.text
+
+        if isinstance(data, dict) and "error" in data:
+            error_msg = data["error"]
+            if error_msg == "Unauthorized":
+                raise AuthenticationError(
+                    "API request unauthorized",
+                    details={"response": data},
+                )
+            raise APIError(
+                f"API error: {error_msg}",
+                status_code=response.status_code,
+                response_body=data,
+            )
+
+        return data
 
     def request(
         self,

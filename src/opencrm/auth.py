@@ -86,9 +86,15 @@ class SessionAuth(AuthStrategy):
             ) from e
 
         try:
-            access_key = response.json().get("accesskey") or response.text.strip()
+            data = response.json()
+            if isinstance(data, str):
+                access_key = data
+            elif isinstance(data, dict):
+                access_key = data.get("accesskey", "")
+            else:
+                access_key = ""
         except Exception:
-            access_key = response.text.strip()
+            access_key = response.text.strip().strip('"')
 
         if not access_key:
             raise AuthenticationError(
