@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from opencrm.resources.products import ProductsResource
     from opencrm.resources.projects import ProjectsResource
 
-DEFAULT_USER_AGENT = "opencrm-python/0.1.0"
+DEFAULT_USER_AGENT = "opencrm-api/0.1.0"
 DEFAULT_TIMEOUT = 30.0
 
 
