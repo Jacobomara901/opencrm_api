@@ -26,7 +26,7 @@ class APIKeyAuth(AuthStrategy):
     pass_key: str
 
     def apply_to_request(self, data: dict[str, str]) -> dict[str, str]:
-        return {**data, "apikey": self.api_key, "passkey": self.pass_key}
+        return {**data, "key": self.api_key, "passkey": self.pass_key}
 
     def apply_to_headers(self, headers: dict[str, str]) -> dict[str, str]:
         return headers
