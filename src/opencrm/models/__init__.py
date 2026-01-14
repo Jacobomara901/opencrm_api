@@ -1,3 +1,4 @@
+from opencrm.models.activity import Activity
 from opencrm.models.base import CRMRecord, ListResponse, OpenCRMModel, PaginationParams
 from opencrm.models.company import Company
 from opencrm.models.contact import Contact
@@ -12,6 +13,7 @@ __all__ = [
     "CRMRecord",
     "ListResponse",
     "PaginationParams",
+    "Activity",
     "Lead",
     "Contact",
     "Company",

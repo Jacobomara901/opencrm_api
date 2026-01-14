@@ -185,6 +185,7 @@ new_count = client.leads.count(query=query().equals("leadstatus", "New"))
 
 | Resource | Description |
 |----------|-------------|
+| `client.activities` | Activity records (tasks, calls, meetings) |
 | `client.leads` | Lead records |
 | `client.contacts` | Contact records |
 | `client.companies` | Company/Account records |
