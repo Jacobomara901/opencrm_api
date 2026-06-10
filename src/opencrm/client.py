@@ -34,6 +34,7 @@ from opencrm.exceptions import (
 
 if TYPE_CHECKING:
     from opencrm.resources.activities import ActivitiesResource
+    from opencrm.resources.assets import AssetsResource
     from opencrm.resources.companies import CompaniesResource
     from opencrm.resources.contacts import ContactsResource
     from opencrm.resources.helpdesk import HelpdeskResource
@@ -323,6 +324,14 @@ class OpenCRMClient:
         if not hasattr(self, "_products"):
             self._products = ProductsResource(self._http)
         return self._products
+
+    @property
+    def assets(self) -> "AssetsResource":
+        from opencrm.resources.assets import AssetsResource
+
+        if not hasattr(self, "_assets"):
+            self._assets = AssetsResource(self._http)
+        return self._assets
 
     @property
     def users(self) -> "UsersResource":

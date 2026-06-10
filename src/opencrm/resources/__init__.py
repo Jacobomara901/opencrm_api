@@ -1,4 +1,5 @@
 from opencrm.resources.activities import ActivitiesResource
+from opencrm.resources.assets import AssetsResource
 from opencrm.resources.base import BaseResource
 from opencrm.resources.companies import CompaniesResource
 from opencrm.resources.contacts import ContactsResource
@@ -11,6 +12,7 @@ from opencrm.resources.users import UsersResource
 
 __all__ = [
     "ActivitiesResource",
+    "AssetsResource",
     "BaseResource",
     "LeadsResource",
     "ContactsResource",

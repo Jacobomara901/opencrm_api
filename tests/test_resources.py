@@ -1,0 +1,51 @@
+"""Structural tests for resource/model wiring.
+
+These tests verify the shape of the typed wrappers (endpoint constants,
+model fields, client properties) without making any HTTP calls.
+"""
+
+from datetime import date
+from decimal import Decimal
+from typing import get_args, get_origin
+
+import pytest
+
+from opencrm import OpenCRMClient
+from opencrm.models.asset import Asset
+from opencrm.resources.assets import AssetsResource
+
+
+@pytest.fixture()
+def client():
+    c = OpenCRMClient(system_name="test", api_key="k", pass_key="p")
+    yield c
+    c.close()
+
+
+def _annotated_type(model_cls: type, field: str) -> tuple:
+    info = model_cls.model_fields[field]
+    args = get_args(info.annotation)
+    if not args:
+        return (info.annotation,)
+    return tuple(a for a in args if a is not type(None))
+
+
+class TestAssetsResource:
+    def test_endpoints(self):
+        assert AssetsResource._list_endpoint == "get_asset_list"
+        assert AssetsResource._list_full_endpoint == "get_asset_list_full"
+        assert AssetsResource._count_endpoint == "get_asset_list_count"
+        assert AssetsResource._get_endpoint == "get_asset"
+        assert AssetsResource._edit_endpoint == "edit_asset"
+        assert AssetsResource._model_class is Asset
+
+    def test_client_property(self, client):
+        assert isinstance(client.assets, AssetsResource)
+
+    def test_model_field_types(self):
+        assert _annotated_type(Asset, "account_id") == (int,)
+        assert _annotated_type(Asset, "contact_id") == (int,)
+        assert _annotated_type(Asset, "product_id") == (int,)
+
+    def test_model_inherits_crm_record(self):
+        assert {"crmid", "assigned_user_id"} <= set(Asset.model_fields)
