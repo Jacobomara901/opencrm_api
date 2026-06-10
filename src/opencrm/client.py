@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     from opencrm.resources.leads import LeadsResource
     from opencrm.resources.opportunities import OpportunitiesResource
     from opencrm.resources.products import ProductsResource
+    from opencrm.resources.purchaseorders import PurchaseOrdersResource
     from opencrm.resources.projects import ProjectsResource
     from opencrm.resources.quotes import QuotesResource
     from opencrm.resources.salesorders import SalesOrdersResource
@@ -327,6 +328,14 @@ class OpenCRMClient:
         if not hasattr(self, "_products"):
             self._products = ProductsResource(self._http)
         return self._products
+
+    @property
+    def purchaseorders(self) -> "PurchaseOrdersResource":
+        from opencrm.resources.purchaseorders import PurchaseOrdersResource
+
+        if not hasattr(self, "_purchaseorders"):
+            self._purchaseorders = PurchaseOrdersResource(self._http)
+        return self._purchaseorders
 
     @property
     def salesorders(self) -> "SalesOrdersResource":

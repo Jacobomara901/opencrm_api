@@ -14,9 +14,11 @@ from opencrm import OpenCRMClient
 from opencrm.models.asset import Asset
 from opencrm.models.contract import Contract
 from opencrm.models.quote import Quote
+from opencrm.models.purchaseorder import PurchaseOrder
 from opencrm.models.salesorder import SalesOrder
 from opencrm.resources.assets import AssetsResource
 from opencrm.resources.contracts import ContractsResource
+from opencrm.resources.purchaseorders import PurchaseOrdersResource
 from opencrm.resources.quotes import QuotesResource
 from opencrm.resources.salesorders import SalesOrdersResource
 
@@ -124,3 +126,28 @@ class TestSalesOrdersResource:
 
     def test_model_inherits_crm_record(self):
         assert {"crmid", "assigned_user_id"} <= set(SalesOrder.model_fields)
+
+
+class TestPurchaseOrdersResource:
+    def test_endpoints(self):
+        assert PurchaseOrdersResource._list_endpoint == "get_purchaseorder_list"
+        assert (
+            PurchaseOrdersResource._list_full_endpoint == "get_purchaseorder_list_full"
+        )
+        assert PurchaseOrdersResource._count_endpoint == "get_purchaseorder_list_count"
+        assert PurchaseOrdersResource._get_endpoint == "get_purchaseorder"
+        assert PurchaseOrdersResource._edit_endpoint == "edit_purchaseorder"
+        assert PurchaseOrdersResource._model_class is PurchaseOrder
+
+    def test_client_property(self, client):
+        assert isinstance(client.purchaseorders, PurchaseOrdersResource)
+
+    def test_model_field_types(self):
+        assert _annotated_type(PurchaseOrder, "subject") == (str,)
+        assert _annotated_type(PurchaseOrder, "purchaseorder_no") == (str,)
+        assert _annotated_type(PurchaseOrder, "vendor_id") == (int,)
+        assert _annotated_type(PurchaseOrder, "duedate") == (date,)
+        assert _annotated_type(PurchaseOrder, "total") == (Decimal,)
+
+    def test_model_inherits_crm_record(self):
+        assert {"crmid", "assigned_user_id"} <= set(PurchaseOrder.model_fields)

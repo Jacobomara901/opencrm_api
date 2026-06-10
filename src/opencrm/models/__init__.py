@@ -8,6 +8,7 @@ from opencrm.models.helpdesk import Helpdesk
 from opencrm.models.lead import Lead
 from opencrm.models.opportunity import Opportunity
 from opencrm.models.product import Product
+from opencrm.models.purchaseorder import PurchaseOrder
 from opencrm.models.project import Project
 from opencrm.models.quote import Quote
 from opencrm.models.salesorder import SalesOrder
@@ -30,5 +31,6 @@ __all__ = [
     "Helpdesk",
     "Opportunity",
     "Product",
+    "PurchaseOrder",
     "User",
 ]
