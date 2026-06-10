@@ -14,9 +14,11 @@ from opencrm import OpenCRMClient
 from opencrm.models.asset import Asset
 from opencrm.models.contract import Contract
 from opencrm.models.quote import Quote
+from opencrm.models.salesorder import SalesOrder
 from opencrm.resources.assets import AssetsResource
 from opencrm.resources.contracts import ContractsResource
 from opencrm.resources.quotes import QuotesResource
+from opencrm.resources.salesorders import SalesOrdersResource
 
 
 @pytest.fixture()
@@ -99,3 +101,26 @@ class TestQuotesResource:
 
     def test_model_inherits_crm_record(self):
         assert {"crmid", "assigned_user_id"} <= set(Quote.model_fields)
+
+
+class TestSalesOrdersResource:
+    def test_endpoints(self):
+        assert SalesOrdersResource._list_endpoint == "get_salesorder_list"
+        assert SalesOrdersResource._list_full_endpoint == "get_salesorder_list_full"
+        assert SalesOrdersResource._count_endpoint == "get_salesorder_list_count"
+        assert SalesOrdersResource._get_endpoint == "get_salesorder"
+        assert SalesOrdersResource._edit_endpoint == "edit_salesorder"
+        assert SalesOrdersResource._model_class is SalesOrder
+
+    def test_client_property(self, client):
+        assert isinstance(client.salesorders, SalesOrdersResource)
+
+    def test_model_field_types(self):
+        assert _annotated_type(SalesOrder, "subject") == (str,)
+        assert _annotated_type(SalesOrder, "sostatus") == (str,)
+        assert _annotated_type(SalesOrder, "quote_id") == (int,)
+        assert _annotated_type(SalesOrder, "duedate") == (date,)
+        assert _annotated_type(SalesOrder, "salesorder_tags") == (str,)
+
+    def test_model_inherits_crm_record(self):
+        assert {"crmid", "assigned_user_id"} <= set(SalesOrder.model_fields)

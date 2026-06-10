@@ -10,6 +10,7 @@ from opencrm.resources.opportunities import OpportunitiesResource
 from opencrm.resources.products import ProductsResource
 from opencrm.resources.projects import ProjectsResource
 from opencrm.resources.quotes import QuotesResource
+from opencrm.resources.salesorders import SalesOrdersResource
 from opencrm.resources.users import UsersResource
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "CompaniesResource",
     "ProjectsResource",
     "QuotesResource",
+    "SalesOrdersResource",
     "HelpdeskResource",
     "OpportunitiesResource",
     "ProductsResource",
