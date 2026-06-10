@@ -5,6 +5,7 @@ from opencrm.models.company import Company
 from opencrm.models.contact import Contact
 from opencrm.models.contract import Contract
 from opencrm.models.helpdesk import Helpdesk
+from opencrm.models.invoice import Invoice
 from opencrm.models.lead import Lead
 from opencrm.models.opportunity import Opportunity
 from opencrm.models.product import Product
@@ -29,6 +30,7 @@ __all__ = [
     "Quote",
     "SalesOrder",
     "Helpdesk",
+    "Invoice",
     "Opportunity",
     "Product",
     "PurchaseOrder",
