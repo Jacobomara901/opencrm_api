@@ -13,8 +13,10 @@ import pytest
 from opencrm import OpenCRMClient
 from opencrm.models.asset import Asset
 from opencrm.models.contract import Contract
+from opencrm.models.quote import Quote
 from opencrm.resources.assets import AssetsResource
 from opencrm.resources.contracts import ContractsResource
+from opencrm.resources.quotes import QuotesResource
 
 
 @pytest.fixture()
@@ -74,3 +76,26 @@ class TestContractsResource:
 
     def test_model_inherits_crm_record(self):
         assert {"crmid", "assigned_user_id"} <= set(Contract.model_fields)
+
+
+class TestQuotesResource:
+    def test_endpoints(self):
+        assert QuotesResource._list_endpoint == "get_quote_list"
+        assert QuotesResource._list_full_endpoint == "get_quote_list_full"
+        assert QuotesResource._count_endpoint == "get_quote_list_count"
+        assert QuotesResource._get_endpoint == "get_quote"
+        assert QuotesResource._edit_endpoint == "edit_quote"
+        assert QuotesResource._model_class is Quote
+
+    def test_client_property(self, client):
+        assert isinstance(client.quotes, QuotesResource)
+
+    def test_model_field_types(self):
+        assert _annotated_type(Quote, "subject") == (str,)
+        assert _annotated_type(Quote, "quotestage") == (str,)
+        assert _annotated_type(Quote, "account_id") == (int,)
+        assert _annotated_type(Quote, "validtill") == (date,)
+        assert _annotated_type(Quote, "terms_conditions") == (str,)
+
+    def test_model_inherits_crm_record(self):
+        assert {"crmid", "assigned_user_id"} <= set(Quote.model_fields)

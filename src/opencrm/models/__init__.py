@@ -9,6 +9,7 @@ from opencrm.models.lead import Lead
 from opencrm.models.opportunity import Opportunity
 from opencrm.models.product import Product
 from opencrm.models.project import Project
+from opencrm.models.quote import Quote
 from opencrm.models.user import User
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "Contract",
     "Company",
     "Project",
+    "Quote",
     "Helpdesk",
     "Opportunity",
     "Product",

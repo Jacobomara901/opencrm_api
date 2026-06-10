@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from opencrm.resources.opportunities import OpportunitiesResource
     from opencrm.resources.products import ProductsResource
     from opencrm.resources.projects import ProjectsResource
+    from opencrm.resources.quotes import QuotesResource
     from opencrm.resources.users import UsersResource
 
 DEFAULT_USER_AGENT = "opencrm-api/0.1.0"
@@ -325,6 +326,14 @@ class OpenCRMClient:
         if not hasattr(self, "_products"):
             self._products = ProductsResource(self._http)
         return self._products
+
+    @property
+    def quotes(self) -> "QuotesResource":
+        from opencrm.resources.quotes import QuotesResource
+
+        if not hasattr(self, "_quotes"):
+            self._quotes = QuotesResource(self._http)
+        return self._quotes
 
     @property
     def contracts(self) -> "ContractsResource":
