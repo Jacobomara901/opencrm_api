@@ -18,6 +18,7 @@ from opencrm.models.invoice import Invoice
 from opencrm.models.purchaseorder import PurchaseOrder
 from opencrm.models.salesorder import SalesOrder
 from opencrm.resources.assets import AssetsResource
+from opencrm.resources.contacts import ContactsResource
 from opencrm.resources.contracts import ContractsResource
 from opencrm.resources.invoices import InvoicesResource
 from opencrm.resources.purchaseorders import PurchaseOrdersResource
@@ -177,3 +178,37 @@ class TestInvoicesResource:
 
     def test_model_inherits_crm_record(self):
         assert {"crmid", "assigned_user_id"} <= set(Invoice.model_fields)
+
+
+class TestContactCustomEdits:
+    def test_methods_exist(self):
+        assert callable(ContactsResource.update_custom1)
+        assert callable(ContactsResource.update_custom2)
+
+    def test_custom1_posts_expected_endpoint(self, client, monkeypatch):
+        captured: dict[str, object] = {}
+
+        def fake_post(endpoint, data=None):
+            captured["endpoint"] = endpoint
+            captured["data"] = data
+            return {"crmid": 42}
+
+        monkeypatch.setattr(client.http, "post", fake_post)
+        result = client.contacts.update_custom1(42, fieldname="x")
+        assert result == 42
+        assert captured["endpoint"] == "edit_contact_custom1"
+        assert captured["data"] == {"crmid": 42, "fieldname": "x"}
+
+    def test_custom2_posts_expected_endpoint(self, client, monkeypatch):
+        captured: dict[str, object] = {}
+
+        def fake_post(endpoint, data=None):
+            captured["endpoint"] = endpoint
+            captured["data"] = data
+            return 42
+
+        monkeypatch.setattr(client.http, "post", fake_post)
+        result = client.contacts.update_custom2(42, fieldname="y")
+        assert result == 42
+        assert captured["endpoint"] == "edit_contact_custom2"
+        assert captured["data"] == {"crmid": 42, "fieldname": "y"}
