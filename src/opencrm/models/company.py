@@ -8,7 +8,7 @@ from opencrm.models.base import CRMRecord
 
 class Company(CRMRecord):
     accountname: str | None = Field(default=None, description="Company Name")
-    account_type: str | None = Field(default=None, description="Type")
+    account_type: str | None = Field(default=None, alias="accounttype", description="Type")
     industry: str | None = Field(default=None)
     ownership: str | None = Field(default=None, description="Legal Format")
     rating: str | None = Field(default=None)
