@@ -4,9 +4,9 @@ Base resource class for OpenCRM API modules.
 All resource classes (LeadsResource, ContactsResource, etc.) inherit from BaseResource.
 """
 
-from typing import TYPE_CHECKING, Any, Generic, Iterator, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Iterator, TypeVar
 
-from opencrm.models.base import CRMRecord, PaginationParams
+from opencrm.models.base import CRMRecord
 from opencrm.utils.query import QueryBuilder
 
 if TYPE_CHECKING:
@@ -27,6 +27,7 @@ class BaseResource(Generic[T]):
 
     _module_name: str = ""
     _list_endpoint: str = ""
+    _list_full_endpoint: str = ""
     _count_endpoint: str = ""
     _get_endpoint: str = ""
     _edit_endpoint: str = ""
@@ -36,11 +37,21 @@ class BaseResource(Generic[T]):
         self._http = http
 
     def _parse_list_response(self, response: Any) -> list[dict[str, Any]]:
-        if isinstance(response, list):
-            return response
         if isinstance(response, dict):
-            return [response]
-        return []
+            items = [response]
+        elif isinstance(response, list):
+            items = response
+        else:
+            return []
+        return [_normalize_id(item) for item in items]
+
+    @staticmethod
+    def _resolve_query(query: QueryBuilder | str | None) -> str | None:
+        if query is None:
+            return None
+        if isinstance(query, QueryBuilder):
+            return query.build()
+        return query or None
 
     def count(
         self,
@@ -64,21 +75,39 @@ class BaseResource(Generic[T]):
         """
         data: dict[str, Any] = {}
 
-        if query:
-            query_str = query.build() if isinstance(query, QueryBuilder) else query
-            if query_str:
-                data["query_string"] = query_str
+        query_str = self._resolve_query(query)
+        if query_str:
+            data["query_string"] = query_str
 
         if keywords:
             data["keywords"] = keywords
 
         result = self._http.post(self._count_endpoint, data=data)
+        return _coerce_int(result, fallback=0)
 
-        if isinstance(result, int):
-            return result
-        if isinstance(result, str) and result.isdigit():
-            return int(result)
-        return 0
+    def _list(
+        self,
+        endpoint: str,
+        query: QueryBuilder | str | None,
+        keywords: str | None,
+        limit_start: int | None,
+        limit_end: int | None,
+    ) -> list[dict[str, Any]]:
+        data: dict[str, Any] = {}
+
+        query_str = self._resolve_query(query)
+        if query_str:
+            data["query_string"] = query_str
+
+        if keywords:
+            data["keywords"] = keywords
+        if limit_start is not None:
+            data["limit_start"] = limit_start
+        if limit_end is not None:
+            data["limit_end"] = limit_end
+
+        response = self._http.post(endpoint, data=data)
+        return self._parse_list_response(response)
 
     def list(
         self,
@@ -90,37 +119,59 @@ class BaseResource(Generic[T]):
         """
         List records with optional filtering and pagination.
 
-        Args:
-            query: Filter criteria. Can be a QueryBuilder instance or raw query string.
-            keywords: Full-text search keywords.
-            limit_start: Start index for pagination (0-based).
-            limit_end: End index for pagination.
-
-        Returns:
-            List of record dictionaries. Each dict contains field names as keys.
+        Returns minimal field projections via the standard ``get_*_list`` endpoint.
 
         Example:
-            >>> # Get first 50 leads
             >>> leads = client.leads.list(limit_start=0, limit_end=50)
-            >>> # Filter by status
             >>> new_leads = client.leads.list(query=query().equals("leadstatus", "New"))
         """
-        data: dict[str, Any] = {}
+        return self._list(
+            self._list_endpoint, query, keywords, limit_start, limit_end
+        )
 
-        if query:
-            query_str = query.build() if isinstance(query, QueryBuilder) else query
-            if query_str:
-                data["query_string"] = query_str
+    def list_full(
+        self,
+        query: QueryBuilder | str | None = None,
+        keywords: str | None = None,
+        limit_start: int | None = None,
+        limit_end: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        List records returning the full field set via the ``_full`` endpoint.
 
-        if keywords:
-            data["keywords"] = keywords
-        if limit_start is not None:
-            data["limit_start"] = limit_start
-        if limit_end is not None:
-            data["limit_end"] = limit_end
+        These endpoints return ``id`` instead of ``crmid``; the response is
+        normalized so ``crmid`` is always populated.
 
-        response = self._http.post(self._list_endpoint, data=data)
-        return self._parse_list_response(response)
+        Raises:
+            NotImplementedError: If the resource has no ``_list_full_endpoint``.
+        """
+        if not self._list_full_endpoint:
+            raise NotImplementedError(
+                f"{self._module_name}: _full list endpoint not configured"
+            )
+        return self._list(
+            self._list_full_endpoint, query, keywords, limit_start, limit_end
+        )
+
+    def list_all(
+        self,
+        query: QueryBuilder | str | None = None,
+        keywords: str | None = None,
+        batch_size: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Fetch every matching record by paginating ``list`` until exhausted."""
+        return list(self.iterate(query=query, keywords=keywords, batch_size=batch_size))
+
+    def list_all_full(
+        self,
+        query: QueryBuilder | str | None = None,
+        keywords: str | None = None,
+        batch_size: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Fetch every matching record using the ``_full`` endpoint."""
+        return list(
+            self.iterate_full(query=query, keywords=keywords, batch_size=batch_size)
+        )
 
     def get(self, crmid: int) -> dict[str, Any]:
         """
@@ -134,10 +185,6 @@ class BaseResource(Generic[T]):
 
         Raises:
             NotFoundError: If the record doesn't exist.
-
-        Example:
-            >>> contact = client.contacts.get(crmid=12345)
-            >>> print(contact["firstname"], contact["lastname"])
         """
         response = self._http.post(self._get_endpoint, data={"crmid": crmid})
         if isinstance(response, dict):
@@ -150,33 +197,14 @@ class BaseResource(Generic[T]):
 
         Args:
             **fields: Field values to set on the new record. Use API field names.
-                You should always include 'assigned_user_id' to set the record owner.
+                You should always include ``assigned_user_id`` to set the owner.
 
         Returns:
             The CRM ID of the newly created record.
-
-        Example:
-            >>> new_id = client.leads.create(
-            ...     firstname="John",
-            ...     lastname="Doe",
-            ...     email="john@example.com",
-            ...     assigned_user_id=1,
-            ... )
-            >>> print(f"Created lead with ID: {new_id}")
-
-        Note:
-            The API does not validate data. Ensure you provide valid field values.
         """
         data = {"crmid": 0, **fields}
         result = self._http.post(self._edit_endpoint, data=data)
-
-        if isinstance(result, int):
-            return result
-        if isinstance(result, str) and result.isdigit():
-            return int(result)
-        if isinstance(result, dict) and "record_id" in result:
-            return int(result["record_id"])
-        return 0
+        return _parse_edit_result(result, fallback=0)
 
     def update(self, crmid: int, **fields: Any) -> int:
         """
@@ -189,22 +217,10 @@ class BaseResource(Generic[T]):
 
         Returns:
             The CRM ID of the updated record.
-
-        Example:
-            >>> client.contacts.update(
-            ...     crmid=12345,
-            ...     email="newemail@example.com",
-            ...     phone="555-1234",
-            ... )
         """
         data = {"crmid": crmid, **fields}
         result = self._http.post(self._edit_endpoint, data=data)
-
-        if isinstance(result, int):
-            return result
-        if isinstance(result, str) and result.isdigit():
-            return int(result)
-        return crmid
+        return _parse_edit_result(result, fallback=crmid)
 
     def iterate(
         self,
@@ -215,37 +231,76 @@ class BaseResource(Generic[T]):
         """
         Iterate over all records with automatic pagination.
 
-        Yields records one at a time, automatically fetching new batches as needed.
-        This is memory-efficient for large result sets.
-
-        Args:
-            query: Filter criteria. Can be a QueryBuilder instance or raw query string.
-            keywords: Full-text search keywords.
-            batch_size: Number of records to fetch per API call. Defaults to 100.
-
-        Yields:
-            Record dictionaries one at a time.
+        Memory-efficient for large result sets.
 
         Example:
             >>> for lead in client.leads.iterate():
             ...     print(lead["firstname"], lead["lastname"])
-            >>> # With filtering
-            >>> for contact in client.contacts.iterate(
-            ...     query=query().equals("mailingcountry", "UK")
-            ... ):
-            ...     process_uk_contact(contact)
         """
-        offset = 0
-        while True:
-            batch = self.list(
-                query=query,
-                keywords=keywords,
-                limit_start=offset,
-                limit_end=offset + batch_size,
+        yield from _paginate(self.list, query, keywords, batch_size)
+
+    def iterate_full(
+        self,
+        query: QueryBuilder | str | None = None,
+        keywords: str | None = None,
+        batch_size: int = 100,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate over all records using the ``_full`` endpoint."""
+        if not self._list_full_endpoint:
+            raise NotImplementedError(
+                f"{self._module_name}: _full list endpoint not configured"
             )
-            if not batch:
-                break
-            yield from batch
-            if len(batch) < batch_size:
-                break
-            offset += batch_size
+        yield from _paginate(self.list_full, query, keywords, batch_size)
+
+
+def _normalize_id(item: Any) -> Any:
+    if not isinstance(item, dict):
+        return item
+    if "crmid" in item or "id" not in item:
+        return item
+    item["crmid"] = item["id"]
+    return item
+
+
+def _coerce_int(value: Any, fallback: int) -> int:
+    if isinstance(value, int):
+        return value
+    if not isinstance(value, str):
+        return fallback
+    trimmed = value.strip().strip('"')
+    return int(trimmed) if trimmed.isdigit() else fallback
+
+
+def _parse_edit_result(result: Any, fallback: int) -> int:
+    coerced = _coerce_int(result, fallback=-1)
+    if coerced != -1:
+        return coerced
+    if not isinstance(result, dict):
+        return fallback
+    for key in ("crmid", "record_id", "id"):
+        coerced = _coerce_int(result.get(key), fallback=-1)
+        if coerced != -1:
+            return coerced
+    return fallback
+
+
+def _paginate(
+    fetch: Callable[..., list[dict[str, Any]]],
+    query: QueryBuilder | str | None,
+    keywords: str | None,
+    batch_size: int,
+) -> Iterator[dict[str, Any]]:
+    offset = 0
+    while True:
+        batch = fetch(
+            query=query,
+            keywords=keywords,
+            limit_start=offset,
+            limit_end=offset + batch_size,
+        )
+        if not batch:
+            return
+        yield from batch
+        if len(batch) < batch_size:
+            return
+        offset += batch_size

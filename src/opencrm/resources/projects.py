@@ -5,6 +5,7 @@ from opencrm.resources.base import BaseResource
 class ProjectsResource(BaseResource[Project]):
     _module_name = "Projects"
     _list_endpoint = "get_project_list"
+    _list_full_endpoint = "get_project_list_full"
     _count_endpoint = "get_project_list_count"
     _get_endpoint = "get_project"
     _edit_endpoint = "edit_project"

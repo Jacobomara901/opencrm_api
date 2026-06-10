@@ -19,6 +19,7 @@ class ProductsResource(BaseResource[Product]):
 
     _module_name = "Products"
     _list_endpoint = "get_product_list"
+    _list_full_endpoint = "get_product_list_full"
     _count_endpoint = "get_product_list_count"
     _get_endpoint = "get_product"
     _edit_endpoint = "edit_product"

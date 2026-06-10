@@ -5,6 +5,7 @@ from opencrm.resources.base import BaseResource
 class LeadsResource(BaseResource[Lead]):
     _module_name = "Leads"
     _list_endpoint = "get_lead_list"
+    _list_full_endpoint = "get_lead_list_full"
     _count_endpoint = "get_lead_list_count"
     _get_endpoint = "get_lead"
     _edit_endpoint = "edit_lead"
