@@ -67,6 +67,15 @@ class TestQueryBuilder:
         q = query()
         assert q.build() is None
 
+    def test_multiple_conditions_join_with_semicolon(self):
+        q = query().equals("leadstatus", "New").like("email", "%@example.com")
+        assert q.build() == "leadstatus|=|New;email|LIKE|%@example.com"
+
+    def test_and_combines_builders(self):
+        a = query().equals("status", "Active")
+        b = query().equals("type", "VIP")
+        assert a.and_(b).build() == "status|=|Active;type|=|VIP"
+
     def test_clear(self):
         q = query().equals("name", "test")
         q.clear()
