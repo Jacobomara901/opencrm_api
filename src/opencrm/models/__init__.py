@@ -3,6 +3,7 @@ from opencrm.models.asset import Asset
 from opencrm.models.base import CRMRecord, ListResponse, OpenCRMModel, PaginationParams
 from opencrm.models.company import Company
 from opencrm.models.contact import Contact
+from opencrm.models.contract import Contract
 from opencrm.models.helpdesk import Helpdesk
 from opencrm.models.lead import Lead
 from opencrm.models.opportunity import Opportunity
@@ -19,6 +20,7 @@ __all__ = [
     "Asset",
     "Lead",
     "Contact",
+    "Contract",
     "Company",
     "Project",
     "Helpdesk",
