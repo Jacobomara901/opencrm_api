@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from opencrm.resources.opportunities import OpportunitiesResource
     from opencrm.resources.products import ProductsResource
     from opencrm.resources.projects import ProjectsResource
+    from opencrm.resources.users import UsersResource
 
 DEFAULT_USER_AGENT = "opencrm-api/0.1.0"
 DEFAULT_TIMEOUT = 30.0
@@ -322,6 +323,14 @@ class OpenCRMClient:
         if not hasattr(self, "_products"):
             self._products = ProductsResource(self._http)
         return self._products
+
+    @property
+    def users(self) -> "UsersResource":
+        from opencrm.resources.users import UsersResource
+
+        if not hasattr(self, "_users"):
+            self._users = UsersResource(self._http)
+        return self._users
 
     @property
     def activities(self) -> "ActivitiesResource":
