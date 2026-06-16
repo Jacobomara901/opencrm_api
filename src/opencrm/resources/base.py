@@ -4,6 +4,8 @@ Base resource class for OpenCRM API modules.
 All resource classes (LeadsResource, ContactsResource, etc.) inherit from BaseResource.
 """
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Callable, Generic, Iterator, TypeVar
 
 from opencrm.models.base import CRMRecord
